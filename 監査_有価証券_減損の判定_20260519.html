@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>図解［HTML/CSS］有価証券の減損会計</title>
+    <style>
+        :root {
+            /* Color Palette */
+            --primary-dark: #0f172a;
+            --primary: #1e3a8a;
+            --primary-light: #dbeafe;
+            --secondary: #0ea5e9;
+            --accent-green: #10b981;
+            --accent-green-light: #d1fae5;
+            --accent-yellow: #f59e0b;
+            --accent-yellow-light: #fef3c7;
+            --accent-red: #ef4444;
+            --accent-red-light: #fee2e2;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #475569;
+            --border: #e2e8f0;
+            
+            /* Typography (Minimum 0.95rem strictly enforced) */
+            --font-base: 1rem;       /* 16px */
+            --font-sm: 0.95rem;      /* 15.2px - Minimum allowed */
+            --font-lg: 1.125rem;     /* 18px */
+            --font-xl: 1.25rem;      /* 20px */
+            --font-2xl: 1.5rem;      /* 24px */
+            --font-title: 2rem;      /* 32px */
+            
+            /* Spacing & Layout */
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.6;
+            font-size: var(--font-base);
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Pseudo-header section (No <header> tag) */
+        .page-top-section {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            padding: 3rem 2rem;
+            border-radius: var(--radius-lg);
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+        }
+
+        .page-top-section h1 {
+            font-size: var(--font-title);
+            margin-bottom: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .page-top-section p {
+            font-size: var(--font-lg);
+            opacity: 0.9;
+        }
+
+        .section-title {
+            font-size: var(--font-2xl);
+            color: var(--primary-dark);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .section-title::before {
+            content: "■";
+            color: var(--secondary);
+            font-size: var(--font-xl);
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+        }
+
+        /* Flowchart Styles */
+        .flow-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .flow-box {
+            background-color: var(--bg-card);
+            border: 2px solid var(--primary);
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            width: 100%;
+            max-width: 800px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+
+        .flow-box.highlight {
+            background-color: var(--primary-light);
+            font-weight: bold;
+            font-size: var(--font-lg);
+        }
+
+        .flow-arrow {
+            width: 0; 
+            height: 0; 
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 20px solid var(--primary);
+            margin: 0 auto;
+        }
+
+        .flow-split {
+            display: flex;
+            gap: 2rem;
+            width: 100%;
+            max-width: 1000px;
+            justify-content: center;
+        }
+
+        .flow-split > div {
+            flex: 1;
+        }
+
+        /* Basic Layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Infographic: Formula / Equation */
+        .formula-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: var(--bg-body);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            margin: 1.5rem 0;
+            border: 1px dashed var(--border);
+        }
+
+        .formula-item {
+            background: var(--bg-card);
+            padding: 1rem 1.5rem;
+            border-radius: var(--radius-md);
+            border: 2px solid var(--secondary);
+            font-weight: bold;
+            text-align: center;
+            min-width: 180px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .formula-item span {
+            display: block;
+            font-size: var(--font-sm);
+            font-weight: normal;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .formula-item.result {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+        
+        .formula-item.result span {
+            color: var(--primary-light);
+        }
+
+        .formula-operator {
+            font-size: var(--font-2xl);
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        /* Zones (30%, 30-50%, 50%) */
+        .zone-card {
+            padding: 1.5rem;
+            border-radius: var(--radius-md);
+            border: 2px solid;
+            height: 100%;
+        }
+
+        .zone-safe {
+            border-color: var(--accent-green);
+            background-color: var(--accent-green-light);
+        }
+        
+        .zone-warning {
+            border-color: var(--accent-yellow);
+            background-color: var(--accent-yellow-light);
+        }
+        
+        .zone-danger {
+            border-color: var(--accent-red);
+            background-color: var(--accent-red-light);
+        }
+
+        .zone-header {
+            font-size: var(--font-xl);
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .zone-title {
+            display: block;
+            font-size: var(--font-lg);
+            margin-bottom: 0.5rem;
+        }
+
+        .zone-desc {
+            font-size: var(--font-sm);
+        }
+
+        /* Checklists */
+        .checklist {
+            list-style: none;
+            margin: 1rem 0;
+        }
+
+        .checklist li {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1rem;
+            font-size: var(--font-base);
+        }
+
+        .checklist li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            top: 0;
+            color: var(--primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .checklist.warning li::before {
+            content: "!";
+            color: var(--accent-yellow);
+            background: #fff;
+            border: 2px solid var(--accent-yellow);
+            border-radius: 50%;
+            width: 1.2rem;
+            height: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            top: 2px;
+        }
+
+        /* Table Styles for Audit */
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: var(--font-base);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .audit-table th, .audit-table td {
+            border: 1px solid var(--border);
+            padding: 1rem;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .audit-table th {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            font-weight: bold;
+            width: 30%;
+        }
+
+        .audit-table tr:nth-child(even) {
+            background-color: var(--bg-body);
+        }
+
+        /* Badge/Label */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: var(--font-sm);
+            font-weight: bold;
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-alert {
+            background-color: var(--accent-yellow-light);
+            color: #b45309;
+            border: 1px solid var(--accent-yellow);
+        }
+
+        /* Note / Alert Boxes */
+        .note-box {
+            background-color: #f1f5f9;
+            border-left: 4px solid var(--text-muted);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            font-size: var(--font-sm);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+
+        .important-box {
+            background-color: var(--accent-red-light);
+            border-left: 4px solid var(--accent-red);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+        }
+
+        .important-box strong {
+            color: #b91c1c;
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: var(--font-lg);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .flow-split {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .formula-operator {
+                transform: rotate(90deg);
+            }
+            .audit-table th, .audit-table td {
+                display: block;
+                width: 100%;
+            }
+            .audit-table th {
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- Title Section -->
+    <div class="page-top-section">
+        <h1>有価証券の減損会計 完全図解</h1>
+        <p>〜市場価格のない株式等における「著しい下落」と「回復可能性」の判断基準〜</p>
+    </div>
+
+    <!-- Section 1: 全体像 -->
+    <div class="card">
+        <h2 class="section-title">1. 有価証券減損の全体構造と基本アプローチ</h2>
+        <p>有価証券の減損は、売買目的以外の有価証券について、期末時点で<strong>回収可能性が低下したと判断される場合</strong>に、帳簿価額を切り下げて損失認識する一方向的な会計処理です。（※減損後の時価回復による戻入れは原則不可）</p>
+        
+        <div class="flow-wrapper">
+            <div class="flow-box highlight">
+                保有目的の確定（売買目的か、それ以外か）
+            </div>
+            <div class="flow-arrow"></div>
+            <div class="flow-box">
+                対象：売買目的以外の有価証券（その他有価証券、関係会社株式など）
+            </div>
+            <div class="flow-arrow"></div>
+            
+            <div class="flow-split">
+                <div class="flow-wrapper" style="margin:0;">
+                    <div class="flow-box" style="border-color: var(--secondary);">
+                        <span class="badge">区分A</span><br>
+                        <strong>時価のある有価証券</strong>
+                        <div style="font-size: var(--font-sm); margin-top: 1rem; text-align: left;">
+                            <ul>
+                                <li><strong>指標:</strong> 時価（市場価格）</li>
+                                <li><strong>判定基準:</strong> 時価が著しく下落したか</li>
+                                <li><strong>目安:</strong> 下落率 おおむね50％以上</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flow-wrapper" style="margin:0;">
+                    <div class="flow-box" style="border-color: var(--primary);">
+                        <span class="badge">区分B：本図解のメイン</span><br>
+                        <strong>市場価格のない株式等</strong>
+                        <div style="font-size: var(--font-sm); margin-top: 1rem; text-align: left;">
+                            <ul>
+                                <li><strong>指標:</strong> 実質価額（発行会社の財政状態に基づく）</li>
+                                <li><strong>判定基準:</strong> 実質価額の著しい低下</li>
+                                <li><strong>目安:</strong> 下落率 おおむね50％程度以上</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flow-arrow"></div>
+            <div class="flow-box highlight" style="background-color: var(--accent-red-light); border-color: var(--accent-red);">
+                回復可能性が合理的に認められない場合、減損損失を計上
+                <div style="font-size: var(--font-sm); font-weight: normal; margin-top: 0.5rem;">
+                    ※ポートフォリオ全体での相殺や、含み益銘柄との相殺は不可（個別銘柄ごとに判定）
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 2: 実質価額の算定 -->
+    <div class="card">
+        <h2 class="section-title">2. 「市場価格のない株式等」の実質価額算定ロジック</h2>
+        <p>市場価格のない株式等の評価において、貸借対照表上の帳簿純資産をそのまま按分するのは危険です。算定方法を誤ると減損の要否そのものを誤るため、以下の要素を網羅的に調整し「実質価額」を算定します。</p>
+
+        <div class="formula-container">
+            <div class="formula-item">
+                帳簿純資産
+                <span>発行会社のB/S純資産</span>
+            </div>
+            <div class="formula-operator">±</div>
+            <div class="formula-item">
+                時価評価調整
+                <span>含み損益（有価証券、土地、退職給付等）</span>
+            </div>
+            <div class="formula-operator">+</div>
+            <div class="formula-item">
+                超過収益力等
+                <span>合理的な事業計画に基づく将来収益力</span>
+            </div>
+            <div class="formula-operator">=</div>
+            <div class="formula-item result">
+                実質価額
+                <span>減損判定の基礎となる価値</span>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div>
+                <span class="badge">要点1: 純資産の出発点</span>
+                <p style="font-size: var(--font-sm); margin-bottom: 1rem;">
+                    含み損益のある有価証券、土地、投資不動産、デリバティブ、退職給付引当金など、純資産を歪める要因の調整が必須。見落としは実質価額の過大評価（減損の先送り）につながります。
+                </p>
+                
+                <span class="badge">要点2: 超過収益力の取扱い</span>
+                <p style="font-size: var(--font-sm);">
+                    子会社株式等で純資産以上の価値を認める場合、抽象的な期待ではなく「実行可能で合理的な事業計画」に基づく必要があります。計画未達が続く場合は消滅したものとして再評価します。
+                </p>
+            </div>
+            <div>
+                <span class="badge">要点3: 種類株式の特殊性</span>
+                <p style="font-size: var(--font-sm); margin-bottom: 1rem;">
+                    優先配当、優先残余財産分配、転換権の有無などに応じ、単純な純資産按分ではなく残余財産分配請求権ベースや評価モデルの検討が必要です。債券類似性が強いものはキャッシュフロー性の高い評価が求められます。
+                </p>
+
+                <div class="note-box" style="margin-top:0;">
+                    <strong>評価モデル利用時の注意</strong><br>
+                    割引率、成長率、正常収益力などの設定が恣意的だと、監査上否定されやすいため、前提の整合性と証拠の質が極めて重要です。
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3: 下落率判定ゾーン -->
+    <div class="card">
+        <h2 class="section-title">3. 下落率に基づく判定ゾーンと実務対応</h2>
+        <p>実質価額が算定できたら、取得価額に対する「下落率」を算出します。実務上は下落率に応じて3つのゾーンに分類し、対応を決定します。</p>
+        
+        <div style="text-align: center; margin: 1.5rem 0; font-size: var(--font-lg); font-weight: bold; padding: 1rem; background: var(--bg-body); border-radius: var(--radius-md);">
+            下落率 ＝ （ 取得価額 － 期末実質価額 ） ÷ 取得価額
+        </div>
+
+        <div class="grid-3">
+            <!-- 30%未満 -->
+            <div class="zone-card zone-safe">
+                <div class="zone-header">下落率 30％未満</div>
+                <span class="zone-title">原則、減損不要</span>
+                <p class="zone-desc">
+                    通常、「著しい下落」には該当しないものとして扱われます。ただし、投資先が債務超過である等、重大な質的事由がある場合は別途精査が必要です。
+                </p>
+            </div>
+
+            <!-- 30%超 50%未満 -->
+            <div class="zone-card zone-warning" style="transform: scale(1.05); box-shadow: var(--shadow-lg);">
+                <span class="badge badge-alert" style="display: block; text-align: center; margin-bottom: 0.5rem;">最も判断が揺れやすい</span>
+                <div class="zone-header" style="color: #b45309;">下落率 30％超 50％未満</div>
+                <span class="zone-title" style="color: #b45309; font-weight: bold;">要精査（再審査）ゾーン</span>
+                <p class="zone-desc">
+                    直ちに減損とは限らないが、何も考えずに減損不要とできる領域ではありません。「下落率＋質的事由」の2軸で、会社ごとに定めた合理的な基準に基づく追加判断が必須です。
+                </p>
+            </div>
+
+            <!-- 50%以上 -->
+            <div class="zone-card zone-danger">
+                <div class="zone-header" style="color: #b91c1c;">下落率 50％以上</div>
+                <span class="zone-title" style="color: #b91c1c; font-weight: bold;">原則、減損対象</span>
+                <p class="zone-desc">
+                    原則として「著しい下落」に該当します。将来の回復見込みが客観的・合理的に（極めて強い証拠をもって）説明できる例外的な場合を除き、減損損失を計上します。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4: 要精査ゾーンの社内判定基準 -->
+    <div class="card">
+        <h2 class="section-title">4. 「要精査ゾーン（30％超50％未満）」の社内判定基準と証拠要件</h2>
+        <p>30％超50％未満の銘柄について、減損回避のために判断を歪めたと見なされないよう、<strong>「数値基準＋チェックリスト＋証拠要件」の3層構造</strong>で規定を設けることが実務上極めて有効です。</p>
+
+        <div class="grid-2">
+            <div>
+                <div style="background-color: var(--bg-body); padding: 1.5rem; border-radius: var(--radius-md); height: 100%;">
+                    <h3 style="font-size: var(--font-lg); margin-bottom: 1rem; color: var(--primary-dark);">【STEP 1】 質的事由のチェックリスト</h3>
+                    <p style="font-size: var(--font-sm); margin-bottom: 1rem;">以下のいずれかに「Yes」がつく場合、減損対象と判定する（すべて「No」の場合のみ次へ）。</p>
+                    <ul class="checklist warning">
+                        <li>投資先の債務超過の発生または拡大</li>
+                        <li>過去2期以上の事業計画未達成</li>
+                        <li>主力事業の縮小・撤退、経営戦略の転換</li>
+                        <li>資金繰りの逼迫（金利引上げ、保証要請、借換え困難等）</li>
+                        <li>回復計画（増資、事業再編等）が具体的・蓋然的でない</li>
+                        <li>格付機関による格付引下げ、ネガティブニュースの発生</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div>
+                <div style="background-color: var(--bg-body); padding: 1.5rem; border-radius: var(--radius-md); height: 100%;">
+                    <h3 style="font-size: var(--font-lg); margin-bottom: 1rem; color: var(--primary-dark);">【STEP 2】 回復可能性の裏付け要件</h3>
+                    <p style="font-size: var(--font-sm); margin-bottom: 1rem;">STEP1をクリアして「減損不要」とする場合、以下の<strong>いずれかの客観的証拠</strong>が必須となります。（単なる期待・願望は不可）</p>
+                    <ul class="checklist">
+                        <li>直近2期で黒字継続、かつ明確な回復トレンドの確認</li>
+                        <li>実行可能で過去実績と整合する中期事業計画の存在</li>
+                        <li>金融機関からの資金支援、保証継続の確約文書の入手</li>
+                        <li>親会社からの支援（出資、保証、業務提携等）の確実性</li>
+                    </ul>
+                    <div class="note-box" style="margin-top: 1rem; padding: 0.75rem;">
+                        ※子会社であっても、回復可能性の裏付け（証拠）が弱ければ減損が必要です。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 5: 監査調書 -->
+    <div class="card">
+        <h2 class="section-title">5. 監査上の留意点と監査調書への記録</h2>
+        <p>有価証券の減損は「会計上の見積り」として虚偽表示リスクが高い領域です。特に30％超50％未満の銘柄は、監査調書に「減損不要と判断した根拠」を明示的に、かつ体系的に残すことが求められます。</p>
+
+        <div class="important-box">
+            <strong>監査上の最重要チェックポイント</strong>
+            <ul style="margin-left: 1.5rem; font-size: var(--font-sm);">
+                <li>会社設定の「著しい下落」の閾値が恣意的・利益調整目的でないか。</li>
+                <li>事業計画が楽観的前提に偏っていないか（過去実績との整合性）。</li>
+                <li>前年度に減損回避した銘柄が、今期実際に計画通り回復しているか（一貫性）。</li>
+            </ul>
+        </div>
+
+        <h3 style="font-size: var(--font-lg); margin: 2rem 0 1rem;">■ 監査調書の記載フォーマット例（要精査ゾーン銘柄の例）</h3>
+        <table class="audit-table">
+            <tbody>
+                <tr>
+                    <th>銘柄基本情報</th>
+                    <td>
+                        <strong>銘柄名：</strong> ○○株式会社（子会社・普通株式）<br>
+                        <strong>取得価額：</strong> 100,000千円<br>
+                        <strong>期末実質価額：</strong> 60,000千円<br>
+                        <strong>下落率：</strong> 40％（判定ゾーン：30％超50％未満）
+                    </td>
+                </tr>
+                <tr>
+                    <th>実質価額算定の基礎</th>
+                    <td>
+                        ・発行会社の直近個別決算書（YYYY年MM月版）を入手。<br>
+                        ・純資産調整：保有不動産の時価評価差額（+5,000千円）を反映。<br>
+                        ・超過収益力：事業計画未達が続いているため今回は織り込まず。
+                    </td>
+                </tr>
+                <tr>
+                    <th>質的事由・財務状態の評価</th>
+                    <td>
+                        ・債務超過なし、ただし累積損失の拡大あり。<br>
+                        ・直近第4四半期より黒字転換を確認。<br>
+                        ・社内規程のチェックリストと照合し、致命的な悪化事由には該当しないと判定。
+                    </td>
+                </tr>
+                <tr>
+                    <th>事業計画・回復可能性の根拠</th>
+                    <td>
+                        ・<strong>事業計画：</strong> 中期計画を入手。直近2期で計画未達はない。<br>
+                        ・<strong>資金繰り：</strong> 取引金融機関からの融資枠維持および保証継続の書面を確認。<br>
+                        ・<strong>親会社支援：</strong> 当社からの業務提携強化による売上シナジーが見込まれる（取締役会議事録確認済）。
+                    </td>
+                </tr>
+                <tr>
+                    <th>結論および監査評価</th>
+                    <td>
+                        <strong>会社判断：</strong> 実質的な回復が見込まれるため減損不要。<br>
+                        <strong>監査評価：</strong> 経営者の判断は社内規程に準拠しており合理的。入手した外部証拠（銀行確約書、事業計画実績）との整合性も確認され、減損不要の結論を妥当と認める。
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Final Conclusion Note -->
+    <div style="text-align: center; color: var(--text-muted); font-size: var(--font-sm); margin-top: 2rem;">
+        <p>※本図解は日本基準の会社法監査実務・金融商品に関する会計基準等に基づく解説を構造化したものです。税務上の取扱いとは別論点となる点にご留意ください。</p>
+    </div>
+
+</div>
+
+</body>
+</html>
